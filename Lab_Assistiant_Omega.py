@@ -36,4 +36,4 @@ async def on_message(message):
         msgcontent=msgcontent.split(' ')[1:]
         msgcontent=cap_first_letter('_'.join(msgcontent))
         await message.channel.send('https://en.wikipedia.org/wiki/'+msgcontent)
-client.run('NTU0NzIyODU4OTc5NDI2MzI0.XPAAKg.pCNApp-JNVyQb63A4whXDuJY3WQ')
+client.run(token)
