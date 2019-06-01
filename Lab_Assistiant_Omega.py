@@ -116,4 +116,4 @@ Chemixer v0.4.0 (DOS)
         msgcontent=cap_first_letter('_'.join(msgcontent))
         await message.channel.send('https://en.wikipedia.org/wiki/'+msgcontent)
         
-client.run('NTU0NzIyODU4OTc5NDI2MzI0.XPHClg._XeqCq9DHnYcIW9eu7UOQpgkyhE')
+client.run(token)
