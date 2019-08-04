@@ -259,4 +259,4 @@ async def on_member_remove(member):
     await channel.send("See you later " + member.mention + '.')
 
 
-client.run('NTU0NzIyODU4OTc5NDI2MzI0.XPXAng._7EcJgjlWKEaxf04-RI1JTHbt_s')
+client.run(token)
