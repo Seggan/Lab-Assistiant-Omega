@@ -65,7 +65,7 @@ async def on_message(message):
         money[message.author.name] = 1
 
     for word in filtered_words:
-        if word in msgcontent.lower():
+        if word in msgcontent.lower() and not message.channel.name == "bot-logs":
             await message.delete()
             role = discord.utils.get(message.guild.roles, name="Moderators")
             await channel.send('You said a filtered word! Let me get my ban hammer...')
@@ -74,9 +74,9 @@ async def on_message(message):
             time.sleep(3)
             await channel.send(
                 '''I can\'t find my ban hammer. I\'ll leave you with a warning this time, but next time, I\'ll be more 
-                serious.''')
+serious.''')
             time.sleep(3)
-            await channel.send('{0.mention}, did you catch that?'.format(role))
+            await channel.send(f'{role.mention}, did you catch that?')
     if message.author == client.user:
         return
     log = client.get_channel(bot_logs)
@@ -102,8 +102,8 @@ wikipedia - [article name] - Searches Wikipedia for the specified article name.
         ''')
 
     if message.content.startswith(prefix + 'verinfo'):
-        await message.channel.send('''Current Version: 0.5.0
-Upcoming Version: 0.5.1''')
+        await message.channel.send('''Current Version: 0.5.2
+Upcoming Version: 0.5.3''')
 
     if message.content.startswith(prefix + 'eval'):
         evalstr = message.content
@@ -120,11 +120,23 @@ Upcoming Version: 0.5.1''')
     if message.content.startswith(prefix + 'updates'):
         await message.channel.send('''
 *-* Updates Bulletin *-*
-ChemMixer v0.5.2 (Upcoming)
+ChemMixer v0.5.3 (Upcoming)
 -------------------------
-+Russian translation
++Code Restructuring
++Bugfix
++Tools
++2 beakers
+-Arrow key temperature changing
 
-ChemMixer v0.5.1 (Upcoming)
+ChemMixer v0.5.2
+-------------------------
++Code Restructuring
++Music
++Arrow key temperature changing
++Enzymes
+-Helium and dihelium
+
+ChemMixer v0.5.1
 -------------------------
 +GUI changes
 +Bugfix
@@ -160,7 +172,6 @@ ChemMixer v0.4.0
 -Numerical selection
 -Most text
 -Discovery mode
--Numerical selection
 
 ChemMixer v0.3.0
 -------------------------
@@ -173,7 +184,7 @@ ChemMixer v0.2.2
 +Bugfixes''')
     if message.content.startswith(prefix + 'dosupdates'):
         await message.channel.send('''
-*-* Updates Bulletin N.1 31/05/2019 *-*
+*-* Updates Bulletin *-*
 ChemMixer v0.4.0 (DOS)
 -------------------------
 +Minus memory use
@@ -181,8 +192,8 @@ ChemMixer v0.4.0 (DOS)
 +Better UI
 +Compatible with all Text-mode compatible graphic cards/drivers
 +Tested on MS-DOS 6.22
--Narrow menu
-+Scrollbar (WIP)''')
++Scrollbar (WIP)
+-Narrow menu''')
 
     if message.content.startswith(prefix + 'wikipedia'):
         msgcontent = message.content
@@ -223,11 +234,82 @@ ChemMixer v0.4.0 (DOS)
 
     if message.content.startswith(prefix + 'atoms'):
         await message.channel.send(
-            "{0.name}, you have {1} atoms.".format(message.author, money[message.author.name]))
+            "{0.mention}, you have {1} atoms.".format(message.author, money[message.author.name]))
 
     if message.content.startswith(prefix + 'atomfile') and "Moderators" in [y.name for y in message.author.roles]:
         with open("money.json", 'r') as f:
-            await message.channel.send(file=discord.File(fp=f, filename="money.json"))
+            file = f.read()
+            await message.channel.send(file)
+
+    if message.content.startswith(prefix + 'buy'):
+        if message.content.strip() == prefix + 'buy':
+            pass
+        else:
+            what = message.content.split(' ')[1]
+            author = message.author.name
+            failed = False
+            with open("money.json", 'r') as f:
+                money = json.load(f)
+            if what.strip() == "alpha":
+                if money[author] >= 10000:
+                    role = discord.utils.get(message.guild.roles, name="Alpha Testers")
+                    await message.author.add_roles(role)
+                    money[author] -= 10000
+                    with open("money.json", 'w') as f:
+                        json.dump(money, f)
+                    await message.channel.send("You have successfully bought the Alpha Testers role.")
+                else:
+                    failed = True
+
+            if failed:
+                await message.channel.send("You do not have enough money to buy that.")
+
+    if message.content.startswith(prefix + 'slots'):
+        author = message.author.name
+        first = random.randint(1, 6)
+        second = random.randint(1, 6)
+        with open("money.json", 'r') as f:
+            money = json.load(f)
+        if money[author] >= 50:
+            money[author] -= 50
+            with open("money.json", 'w') as f:
+                json.dump(money, f)
+            await message.channel.send("Spinning the slot machine for 50 atoms:")
+            time.sleep(1)
+            await message.channel.send("First number: " + str(first))
+            time.sleep(2)
+            await message.channel.send("Second number: " + str(second))
+            time.sleep(1)
+            if first == second:
+                await message.channel.send("You have won 500 atoms!")
+                money[author] += 500
+                with open("money.json", 'w') as f:
+                    json.dump(money, f)
+            else:
+                await message.channel.send("Sorry, but you have lost. Better luck next time.")
+
+    if message.content.startswith(prefix + 'send') and message.channel.name == "bot-control-panel":
+        bad_channels = [
+            "announcements",
+            "dos-announcements",
+            "bot-logs",
+            "rules",
+            "link",
+            "faq",
+            "new-videos"
+        ]
+        argss = message.content.split(' ')[1:]
+        try:
+            id = int(argss[0])
+        except ValueError:
+            await message.channel.send("Invalid channel id.")
+            return
+        text = ' '.join(argss[1:])
+        chan = client.get_channel(id)
+        if chan.name in bad_channels:
+            await message.channel.send("I cannot post in that channel.")
+        else:
+            await chan.send(text)
 
 
 @client.event
@@ -259,4 +341,4 @@ async def on_member_remove(member):
     await channel.send("See you later " + member.mention + '.')
 
 
-client.run(token)
+client.run('NTU0NzIyODU4OTc5NDI2MzI0.XUYq4A.QD1fBWSdN0qGf_dTVbhfYcpv-10')
